@@ -50,7 +50,7 @@ var path = d3.geo.path()
 
 // Load data (asynchronously)
 d3_queue.queue()
-    .defer(d3.json, "./br-states.json")
+    .defer(d3.json, "https://raw.githubusercontent.com/Volkana/d3/master/br-states.json")
     .await(ready);
 
 function ready(error, shp) {
