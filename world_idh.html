@@ -8,7 +8,7 @@
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
 
 <!-- Create an element where the map will take place -->
-<svg id="my_dataviz" width="400" height="300"></svg>
+<svg id="my_dataviz" width="800" height="600"></svg>
 
 
 <script>
@@ -17,6 +17,10 @@
 var svg = d3.select("svg"),
   width = +svg.attr("width"),
   height = +svg.attr("height");
+  zoom = +svg.call(d3.zoom().on("zoom", function () {
+    svg.attr("transform", d3.event.transform)
+    }))
+
 
 // Map and projection
 var path = d3.geoPath();
@@ -29,17 +33,17 @@ var projection = d3.geoMercator()
 var data = d3.map();
 var colorScale = d3.scaleThreshold()
   .domain([100000, 1000000, 10000000, 30000000, 100000000, 500000000])
-  .range(d3.schemeBlues[7]);
+  .range(d3.schemeReds[7]);
 
 // Load external data and boot
 d3.queue()
   .defer(d3.json, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
-  .defer(d3.csv, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world_population.csv", function(d) { data.set(d.state, +d.number); })
+  .defer(d3.csv, "https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world_population.csv", function(d) { data.set(d.code, +d.pop); })
   .await(ready);
 
 function ready(error, topo) {
   let mouseOver = function(d) {
-    d3.selectAll(".state")
+    d3.selectAll(".Country")
       .transition()
       .duration(200)
       .style("opacity", .5)
@@ -51,7 +55,7 @@ function ready(error, topo) {
   }
 
   let mouseLeave = function(d) {
-    d3.selectAll(".state")
+    d3.selectAll(".Country")
       .transition()
       .duration(200)
       .style("opacity", .8)
@@ -62,25 +66,31 @@ function ready(error, topo) {
   }
 
   // Draw the map
-  svg.append("g")
+  svg.append("g")  
     .selectAll("path")
     .data(topo.features)
     .enter()
     .append("path")
-      // draw each state
+      // draw each country
       .attr("d", d3.geoPath()
         .projection(projection)
       )
-      // set the color of each state
+      // set the color of each country
       .attr("fill", function (d) {
-        d.total = data.get(d.nome) || 0;
+        d.total = data.get(d.id) || 0;
         return colorScale(d.total);
       })
       .style("stroke", "transparent")
-      .attr("class", function(d){ return "state" } )
+      .attr("class", function(d){ return "Country" } )
       .style("opacity", .8)
       .on("mouseover", mouseOver )
       .on("mouseleave", mouseLeave )
     }
+// What to do when zooming
+function zoomed() {
+  g.style("stroke-width", 1.5 / d3.event.scale + "px");
+  g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+d3.select(self.frameElement).style("height", height + "px");
 
 </script>
